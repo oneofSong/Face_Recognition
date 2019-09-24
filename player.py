@@ -9,7 +9,7 @@ import os
 class cv_video_player(QThread):
     changePixmap = Signal(QImage)
     # changeTime = Signal(int,int)
-    # changeExtFrame = Signal(QImage,list)
+    changeExtFrame = Signal(list)
 
     def __init__(self, file_path, parent=None):
         QThread.__init__(self)
@@ -48,13 +48,16 @@ class cv_video_player(QThread):
                     self.cap.set(cv2.CAP_PROP_POS_FRAMES,0)
                     self.play = False
 
-            # if not self.cur_frame % round(self.fps):
-            #     print("cur frame : {} total frame : {} ".format(self.cur_frame,self.total_frame))
-            #     print("fps : {} {}".format(round(self.fps),self.cur_frame / round(self.fps)))
+            if not self.cur_frame % round(self.fps):
+                print("cur frame : {} total frame : {} ".format(self.cur_frame,self.total_frame))
+                print("fps : {} {}".format(round(self.fps),self.cur_frame / round(self.fps)))
             #     self.changeTime.emit(int(self.cur_frame / self.fps),int(self.duration))
             #
-            #     # 3초에 한번씩 프레임데이터를 검출결과테이블로 전달(데모를 위함)
-            #     if int(self.cur_frame / round(self.fps)) % 3 == 0:
+                # 3초에 한번씩 프레임데이터를 검출결과테이블로 전달(데모를 위함)
+                if int(self.cur_frame / round(self.fps)) % 3 == 0:
+                    # 이미지 프레임 rgb list (추가 데이터 존재를 위해 이중list 처리
+                    checkFrameData = [rgbImage, str(self.cur_frame)]
+                    self.changeExtFrame.emit(checkFrameData)
             #         print("프레임 emit 실행")
             #         # 검출을 위해 이미지를 검출procClass 로 보내고 리턴받는 작업 필요
             #         resultData = ["1", "2", "3", str(self.cur_frame)]
