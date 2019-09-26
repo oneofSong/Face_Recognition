@@ -2,6 +2,7 @@ from PySide2 import QtGui, QtWidgets, QtCore
 import cv2
 from skimage import io
 import dlib
+import numpy as np
 
 class faceRecognition():
 
@@ -25,19 +26,22 @@ class faceRecognition():
         :param sizeY:   resize y (int)
         :return: resize image data
         """
-        imgHeight, imgWidth, imgChanel = ""
+        imgHeight = ""
+        imgWidth = ""
+        imgChanel = ""
         if image is None:
             print("##### 리사이즈 처리할 이미지가 없습니다.")
             return 0
         else:
-            imgHeight, imgWidth, imgChanel = image.shape
+            print(image.shape)
+            imgHeight, imgWidth = image.shape
 
         if sizeX is None and sizeY is None:
             sizeX = 300
             sizeY = 300
 
         print("sizeX : {}, sizeY : {}".format(sizeX, sizeY))
-        print("imgHeight : {}, imgWidth : {}, imgChanel : {}".format(imgHeight, imgWidth, imgChanel))
+        # print("imgHeight : {}, imgWidth : {}, imgChanel : {}".format(imgHeight, imgWidth, imgChanel))
 
         # image 의 사이즈 측정
         # image 의 사이즈가 Default size 300x300 보다 크면 300x300 으로 축소
@@ -48,7 +52,7 @@ class faceRecognition():
             return cv2.resize(image, dsize=(sizeX, sizeY), interpolation=cv2.INTER_LINEAR)  # 확대하는경우
 
 
-    def findFaceInImg(self, imgFilePath=None, img=None):
+    def findFaceInImg_dlib(self, imgFilePath=None, img=None):
         """
         # NOTE : crop 되지않은 이미지에서 face 데이터를 검출한다.
         # DATE : 19.09.20
@@ -94,10 +98,13 @@ class faceRecognition():
         for idx, faceRect in enumerate(detectedFaces):
             # 검출된 얼굴좌표값을 윈도우로 전송
             win.add_overlay(faceRect)
+            print("faceRect :: ")
+            print(faceRect)
 
             # 인식된 좌표에서 랜드마크 추출
             poseLandmarks = facePosePredictor(image, faceRect)
-            print("shape.part(33) :안면부 코위치 중앙 좌표: {}".format(poseLandmarks.part(33)))
+            print("shape.part(33):안면부 코위치 중앙 좌표:{}".format(poseLandmarks.part(33)))
+            print("poseLandmarks {}", poseLandmarks)
             win.add_overlay(poseLandmarks)
 
             # 얼굴 이미지 변형 후 이미지 파일 생성 처리 (비교를 위함)
@@ -105,3 +112,4 @@ class faceRecognition():
             #
             # cv2.imwrite("alignedFace_{}.jpg".format(idx), alignedFace)
         dlib.hit_enter_to_continue()
+

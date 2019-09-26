@@ -10,7 +10,7 @@
 
 from PySide2 import QtCore, QtGui, QtWidgets
 from player import cv_video_player
-import faceRecognition
+from faceRecognition import faceRecognition
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -79,7 +79,7 @@ class Ui_MainWindow(object):
             self.video_player.playVideo()
 
         # play 이후 추출 connect 실행(데모용, 검출 시작 버튼 클릭시 처리하는걸로 변경필요)
-        self.cm.video_player.changeExtFrame.connect(self.insertAtResultListData)
+        self.video_player.changeExtFrame.connect(self.insertAtResultListData)
 
     def stop_clicked(self):
         self.video_player.pauseVideo()
@@ -91,7 +91,7 @@ class Ui_MainWindow(object):
         :param dataList:
         :return:
         """
-        self.fr.findFaceInImg(imgFilePath=None, img=dataList[0])
+        self.fr.findFaceInImg_dlib(imgFilePath=None, img=dataList[0])
 
     @QtCore.Slot(QtGui.QImage)
     def setPixMap(self,image):
