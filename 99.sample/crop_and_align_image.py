@@ -15,14 +15,14 @@ import glob
 import numpy as np
 import cv2
 
-
+# embedding 거리를 리턴
 def encoding_distance(known_encodings,encoding_check):
     if len(known_encodings) == 0:
-        return np.empty(0)
+        return np.empty(0)s
 
     return np.linalg.norm(known_encodings - encoding_check,axis=0)
 
-
+# 이미지의 embedding을 리턴
 def get_embeddings(img,detector,sp,facerec):
     embd_list = []
     dets = detector(img,1)
@@ -37,23 +37,6 @@ def get_embeddings(img,detector,sp,facerec):
     return embd_list
 
 
-# if len(sys.argv) != 4:
-#     print(
-#         "Call this program like this:\n"
-#         "   ./face_recognition.py shape_predictor_5_face_landmarks.dat dlib_face_recognition_resnet_model_v1.dat ../examples/faces\n"
-#         "You can download a trained facial shape predictor and recognition model from:\n"
-#         "    http://dlib.net/files/shape_predictor_5_face_landmarks.dat.bz2\n"
-#         "    http://dlib.net/files/dlib_face_recognition_resnet_model_v1.dat.bz2")
-#     exit()
-
-# predictor_path = sys.argv[1]
-# face_rec_model_path = sys.argv[2]
-# faces_folder_path = sys.argv[3]
-
-# Load all the models we need: a detector to find the faces, a shape predictor
-# to find face landmarks so we can precisely localize the face, and finally the
-# face recognition model.
-
 # os 확인
 if 'win' in sys.platform :
     path = os.path.normpath(os.path.abspath('../')).replace('\\','/') + '/00.Resource/'
@@ -66,35 +49,9 @@ facerec = dlib.face_recognition_model_v1(path + "dlib_face_recognition_resnet_mo
 
 win = dlib.image_window()
 
-# Now process all the images
-# for f in glob.glob(os.path.join(faces_folder_path, "*.jpg")):
-# img_path = "/home/song/bitproject/data/전지현/3684185.jpg"
-# img_path_2 = "/home/song/bitproject/data/전지현/3684247.jpg"
-# img_path_3 = "/home/song/bitproject/data/옹홍/3586678.jpg"
-
-
-# img = dlib.load_rgb_image(img_path)
-# img_2 = dlib.load_rgb_image(img_path_2)
-# embe_list = get_embeddings(img,detector,sp,facerec)
-# embe_list_2 = get_embeddings(img_2,detector,sp,facerec)
-# # print("{} {}".format(type(embe_list[0]),embe_list[0]))
-#
-# print(encoding_distance(embe_list[0],embe_list_2[0]))
-#
-# img_2 = dlib.load_rgb_image(img_path_3)
-# embe_list_2 = get_embeddings(img_2,detector,sp,facerec)
-#
-# print(encoding_distance(embe_list[0],embe_list_2[0]))
-
-# for k, d in enumerate(dets):
-#     shape = sp(img, d)
-#     face_chip = dlib.get_face_chip(img, shape)
-#     face_descriptor_from_prealigned_image = facerec.compute_face_descriptor(face_chip)
-#     embd_list.append(face_descriptor_from_prealigned_image)
-
 embd_list = []
 cnt = 0
-img_path = "C:/Users/bit/Downloads/남상미"
+
 for f in glob.glob(os.path.join('C:\\Users\\bit\\Downloads\\nam',"*.jpg")):
     print("Processing file: {}".format(f))
     img = dlib.load_rgb_image(f)
@@ -122,6 +79,7 @@ for f in glob.glob(os.path.join('C:\\Users\\bit\\Downloads\\nam',"*.jpg")):
         win.add_overlay(d)
         win.add_overlay(shape)
 
+        # 원본 이미지와 shape로 embedding을 계산
         # face_descriptor = facerec.compute_face_descriptor(img, shape)
 
         print("Computing descriptor on aligned image ..")
@@ -141,5 +99,4 @@ for f in glob.glob(os.path.join('C:\\Users\\bit\\Downloads\\nam',"*.jpg")):
             print("distance {}".format(encoding_distance(np.array(embd_list[k]),np.array(embd_list[k - 1]))))
 
         cv2.destroyAllWindows()
-        # dlib.hit_enter_to_continue()
 
