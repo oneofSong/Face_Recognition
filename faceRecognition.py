@@ -2,7 +2,8 @@ from PySide2 import QtGui, QtWidgets, QtCore
 import cv2
 from skimage import io
 import dlib
-import numpy as np
+
+from mtcnn.mtcnn import MTCNN
 
 class faceRecognition():
 
@@ -113,3 +114,38 @@ class faceRecognition():
             # cv2.imwrite("alignedFace_{}.jpg".format(idx), alignedFace)
         dlib.hit_enter_to_continue()
 
+    def findFaceInImg_mtcnn(self,imgFilePath=None,img=None):
+        """
+        # NOTE : mtcnn을 이용하여 crop 되지않은 이미지에서 face 데이터를 검출한다.
+        # DATE : 19.09.20
+        # parmas : imgFilePath(이미지파일경로), img(이미지데이터)
+        # return :
+        """
+        # QImage to cv2 mat
+
+        # 이미지 데이터 use check
+        image = ""
+        if img is None and imgFilePath is not None:
+            image = io.imread(imgFilePath)
+        elif img is not None and imgFilePath is None:
+            image = img
+        else:
+            print("imgFilePath, img(data) 둘중 하나는 입력되어야 합니다.")
+            return 0
+
+        # image 를 grayscale로 변환 (속도?)
+        # image = self.rgbToGray(image)
+        # image = self.rgbResize(image)
+
+        # mtcnn을 이용하여 얼굴 검출
+        faceDetector = MTCNN()
+        results = faceDetector.detect_faces(image)
+
+        # face found in the image
+        for result in results:
+            x,y,w,h = result['box']
+            print(x,y,w,h)
+            cv2.rectangle(image,(x,y),(x + w,y + h),(0,0,255))
+
+        show_img = cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
+        cv2.imshow("detect",show_img)

@@ -92,6 +92,7 @@ class Ui_MainWindow(object):
         :return:
         """
         self.fr.findFaceInImg_dlib(imgFilePath=None, img=dataList[0])
+        #self.fr.findFaceInImg_mtcnn(imgFilePath=None,img=dataList[0])                                                             
 
     @QtCore.Slot(QtGui.QImage)
     def setPixMap(self,image):
