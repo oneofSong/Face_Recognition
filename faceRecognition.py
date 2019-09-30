@@ -105,7 +105,3 @@ class faceRecognition():
             #
             # cv2.imwrite("alignedFace_{}.jpg".format(idx), alignedFace)
         dlib.hit_enter_to_continue()
-
-
-
-

@@ -24,12 +24,12 @@ class cv_video_player(QThread):
         # 시간 emit 추가시 필요
         ###################
         # if file_path:
-        self.total_frame = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
-        self.cur_frame = self.cap.get(cv2.CAP_PROP_POS_FRAMES)
-        self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        self.duration = self.total_frame / self.fps
-        self.minutes = int(self.duration / 60)
-        self.seconds = int(self.duration % 60)
+        #     self.total_frame = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        #     self.cur_frame = self.cap.get(cv2.CAP_PROP_POS_FRAMES)
+        #     self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+        #     self.duration = self.total_frame / self.fps
+        #     self.minutes = int(self.duration / 60)
+        #     self.seconds = int(self.duration % 60)
 
     def run(self):
         while True:
