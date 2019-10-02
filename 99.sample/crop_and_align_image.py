@@ -18,7 +18,7 @@ import cv2
 # embedding 거리를 리턴
 def encoding_distance(known_encodings,encoding_check):
     if len(known_encodings) == 0:
-        return np.empty(0)s
+        return np.empty(0)
 
     return np.linalg.norm(known_encodings - encoding_check,axis=0)
 

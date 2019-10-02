@@ -71,7 +71,7 @@ for img_path in img_paths:
     known_embd.append(np.array(get_embeddings(img,detector,sp,facerec)))
 
 
-cap = cv2.VideoCapture("/home/song/Downloads/twice_mv.mp4")
+cap = cv2.VideoCapture("/home/bit/Downloads/test2.mp4")
 cnt = 0
 
 cap.set(cv2.CAP_PROP_POS_FRAMES,1200)

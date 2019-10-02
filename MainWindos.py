@@ -11,6 +11,8 @@
 from PySide2 import QtCore, QtGui, QtWidgets
 from player import cv_video_player
 import faceRecognition
+import tensorflow as tf
+import os
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -58,10 +60,11 @@ class Ui_MainWindow(object):
         ############################
         # player 사용시 업로드할 file_path를 입력
         ########################
-        self.video_player = cv_video_player(file_path="C:/Users/bit/Downloads/test.mp4")
+        # self.video_player = cv_video_player(file_path="/home/bit/Downloads/test.mp4")
+        self.video_player = cv_video_player(file_path="/home/bit/Downloads/test3.mp4")
 
         ## faceRecognotion class
-        self.fr = faceRecognition()
+        self.fr = faceRecognition.faceRecognition()
 
         ###########
         # button
@@ -78,17 +81,20 @@ class Ui_MainWindow(object):
             self.video_player.changePixmap.connect(self.setPixMap)
             self.video_player.playVideo()
 
+        # 프레임에서 얼굴(얼굴 윤곽 사각형좌표, 랜드마크포인트)
+        self.video_player.changeExtFrame.connect(self.insertAtResultListData)
+
     def stop_clicked(self):
         self.video_player.pauseVideo()
 
     @QtCore.Slot(list)
     def insertAtResultListData(self, dataList):
         """
-        dlib 를 이용한 얼굴 검출
+        얼굴 검출 트리거
         :param dataList:
         :return:
         """
-        self.fr.findFaceInImg(imgFilePath=None, img=dataList[0])
+        #self.fr.findFaceInImg(imgFilePath=None, img=dataList[0])
 
     @QtCore.Slot(QtGui.QImage)
     def setPixMap(self,image):
@@ -105,6 +111,10 @@ class Ui_MainWindow(object):
 
 if __name__ == "__main__":
     import sys
+    # log
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # 경고 로그 제거
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
