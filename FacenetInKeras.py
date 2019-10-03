@@ -22,8 +22,7 @@ class facenetInKeras():
 
     """
     def __init__(self):
-        self.faceModel = load_model('./00.Resource/model/facenet_keras.h5')
-        self.model = ""
+        self.faceModel = ""
         self.faceEmdDataSet = np.load('./00.Resource/embedding/twice-faces-embeddings.npz')
         self.trainX, self.trainY = self.faceEmdDataSet['arr_0'], self.faceEmdDataSet['arr_1']
         self.inEncoder = Normalizer(norm='l2')
@@ -202,8 +201,8 @@ class facenetInKeras():
         class_index = yhat_class[0]
         class_probability = yhat_prob[0, class_index] * 100
         predict_names = out_encoder.inverse_transform(yhat_class)
-        print('[sample 1] Predicted: ClaaName :: %s Accuracy :: (%.3f) %%' % (predict_names[0], class_probability))
-        print('[sample 1] Expected: %s' % random_face_name[0])
+        # print('[sample 1] Predicted: ClaaName :: %s Accuracy :: (%.3f) %%' % (predict_names[0], class_probability))
+        # print('[sample 1] Expected: %s' % random_face_name[0])
 
         # plot for fun
         # plt.imshow(random_face_pixels)
@@ -264,40 +263,40 @@ class facenetInKeras():
         return results, face_array
 
 
-if __name__ == "__main__":
-    print("run facenet Keras")
-
-    from time import sleep
-
-    # facenet class init
-    faceNet = facenetInKeras()
-
-    imgFace = cv2.imread("/home/bit/Downloads/twice.jpg", cv2.IMREAD_COLOR)
-    faceDetResults, faceImgArr = faceNet.extract_face(imgFace)
-
-    # print("faceDetResults :: ")
-    # print(faceDetResults)
-    #
-    # print("faceImgArr :: ")
-    # print(faceImgArr)
-
-    # 박스 갯수만큼 루프
-    for boxData in faceDetResults:
-        x, y, w, h = boxData['box']
-        print("{} :: {} :: {} :: {} ".format(x, y, w, h))
-
-        # bug fix
-        x, y = abs(x), abs(y)
-        x2, y2 = x + w, y + h
-
-        # extract the face
-        # faceImg = imgFace[y:y2, x:x2]
-
-        cv2.rectangle(imgFace, (x, y), (x2, y2), (0, 255, 0), 2)
-        cv2.putText(imgFace, "NAME", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-
-    faceImg = cv2.resize(imgFace, dsize=(1280, 720), interpolation=cv2.INTER_AREA)
-    cv2.imwrite("./twice_box.jpg", faceImg)
+# if __name__ == "__main__":
+#     print("run facenet Keras")
+#
+#     from time import sleep
+#
+#     # facenet class init
+#     faceNet = facenetInKeras()
+#
+#     imgFace = cv2.imread("/home/bit/Downloads/twice.jpg", cv2.IMREAD_COLOR)
+#     faceDetResults, faceImgArr = faceNet.extract_face(imgFace)
+#
+#     # print("faceDetResults :: ")
+#     # print(faceDetResults)
+#     #
+#     # print("faceImgArr :: ")
+#     # print(faceImgArr)
+#
+#     # 박스 갯수만큼 루프
+#     for boxData in faceDetResults:
+#         x, y, w, h = boxData['box']
+#         print("{} :: {} :: {} :: {} ".format(x, y, w, h))
+#
+#         # bug fix
+#         x, y = abs(x), abs(y)
+#         x2, y2 = x + w, y + h
+#
+#         # extract the face
+#         # faceImg = imgFace[y:y2, x:x2]
+#
+#         cv2.rectangle(imgFace, (x, y), (x2, y2), (0, 255, 0), 2)
+#         cv2.putText(imgFace, "NAME", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+#
+#     faceImg = cv2.resize(imgFace, dsize=(1280, 720), interpolation=cv2.INTER_AREA)
+#     cv2.imwrite("./twice_box.jpg", faceImg)
 
     # 프레임 내 얼굴갯수만큼 루프
     # for idx in range(len(faceImgArr)):

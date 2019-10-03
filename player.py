@@ -37,8 +37,8 @@ class cv_video_player(QThread):
             self.seconds = int(self.duration % 60)
 
     def run(self):
-        # faceModel = load_model('./00.Resource/model/facenet_keras.h5')
-
+        # 비디오 업로드 시 모델 업로드 처리
+        self.faceNet.faceModel = load_model('./00.Resource/model/facenet_keras.h5')
         while True:
             convertToQtFormat = ""
             rgbImage = ""
@@ -51,33 +51,9 @@ class cv_video_player(QThread):
                     # rgbImage = cv2.cvtColor(frame, cv2.IMREAD_COLOR)
 
                     # 30프레임당 1회 검출
-                    if int(self.cur_frame) % 30 == 0:
-                        print("======================검출을 수행합니다.")
-                        faceDetResults, faceImgArr = self.faceNet.extract_face(rgbImage)
-                        for idx in range(len(faceDetResults)):
-                            imgToEmd = self.faceNet.getEmbedding(faceImgArr[idx])
-                            # imgToEmd = self.faceNet.getEmbedding(faceImgArr[idx])
-                            # bk.clear_session()
-                            predictNm, predictPer = self.faceNet.predictImg(imgToEmd)
-                            # bk.clear_session()
-
-                            # predict 결과치가 80% 이상일 때만 박스 생성
-                            if 95 < int(predictPer):
-                                x, y, w, h = faceDetResults[idx]['box']
-                                print("left : {} _ top : {} _ right : {} _ bottom : {}".format(x, y, w, h))
-
-                                # bug fix
-                                x, y = abs(x), abs(y)
-                                x2, y2 = x + w, y + h
-
-                                # extract the face
-                                # faceImg = rgbImage[y:y2, x:x2]
-                                # rgbImage = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                                rgbImage = cv2.rectangle(rgbImage, (x, y), (x2, y2), (0, 255, 0), 1)
-                                cv2.imwrite("./twice_{}frame_{}.jpg".format(self.cur_frame, idx), rgbImage)
-                                rgbImage = cv2.putText(rgbImage, predictNm, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7,(0, 255, 0), 2)
-                            else:
-                                continue
+                    # if int(self.cur_frame) % 30 == 0:
+                    # keras_facenet
+                    rgbImage = self.faceRecog_keras_facenet(rgbImage)
 
                     convertToQtFormat = QImage(rgbImage.data,rgbImage.shape[1],rgbImage.shape[0],
                                                rgbImage.shape[1] * rgbImage.shape[2],QImage.Format_RGB888)
@@ -93,6 +69,44 @@ class cv_video_player(QThread):
                     continue
 
             time.sleep(0.025)
+
+    def faceRecog_keras_facenet(self, rgbImage):
+        """
+        # keras를 이용한 facenet 얼굴 검출 처리
+        :param rgbImage:
+        :return: rgbImage
+        """
+        print("======================검출을 수행합니다.")
+        faceDetResults, faceImgArr = self.faceNet.extract_face(rgbImage)
+
+        # 이미지 내 검출된 얼굴 갯수만큼 루프
+        for idx in range(len(faceDetResults)):
+            # 검출된 얼굴박스 하나에 대하여 임베딩 처리
+            imgToEmd = self.faceNet.getEmbedding(faceImgArr[idx])
+            # 임베딩 된 얼굴데이터의 검증 수행
+            predictNm, predictPer = self.faceNet.predictImg(imgToEmd)
+
+            # predict 결과치가 특정 퍼센트 이상일 때만 박스 생성
+            if 65 < int(predictPer):
+                x, y, w, h = faceDetResults[idx]['box']
+                # print("left : {} _ top : {} _ right : {} _ bottom : {}".format(x, y, w, h))
+
+                # bug fix
+                x, y = abs(x), abs(y)
+                x2, y2 = x + w, y + h
+
+                # extract the face
+                # faceImg = rgbImage[y:y2, x:x2]
+                # rgbImage = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                cv2.rectangle(rgbImage, (x, y), (x2, y2), (0, 255, 0), 2)
+                cv2.putText(rgbImage, str(predictNm), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            else:
+                continue
+
+        # 박스 처리된 이미지 저장
+        # cv2.imwrite("./twice_{}frame.jpg".format(self.cur_frame), rgbImage)
+
+        return rgbImage
 
     def pauseVideo(self):
         self.play = False
