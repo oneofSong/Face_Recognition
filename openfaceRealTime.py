@@ -27,6 +27,11 @@ class openfaceRealTime():
         self.model = ""
         self.color = (0, 255, 0)
         self.face_cascade = cv2.CascadeClassifier('/home/bit/anaconda3/envs/faceRecognition/lib/python3.7/site-packages/cv2/data/haarcascade_frontalface_default.xml')
+        self.employee_pictures = "/home/bit/Downloads/blackpink_crop"
+        self.videoFilePath = "/home/bit/Downloads/test5.mp4"
+        self.employees = dict()
+        self.metric = "cosine"
+        self.threshold = 0.45
 
 
     def preprocess_image(self, image_path):
@@ -258,9 +263,6 @@ class openfaceRealTime():
         model = Model(inputs=[myInput], outputs=norm_layer)
         return model
 
-
-
-
     # ------------------------
     def findCosineDistance(self, source_representation, test_representation):
         a = np.matmul(np.transpose(source_representation), test_representation)
@@ -293,6 +295,128 @@ class openfaceRealTime():
             face.append(faceArray)
         return face
 
+    def representationFileSetting(self, employees):
+        """
+        사진이미지를 이용하여 모델 설정
+        :return: dict
+        """
+        # ------------------------
+        self.model = self.builtModel()
+        print("model built")
+        # ------------------------
+
+        # https://drive.google.com/file/d/1LSe1YCV1x-BfNnfb7DFZTNpv_Q9jITxn/view
+        self.model.load_weights('./00.Resource/weights/openface_weights.h5')
+        print("weights loaded")
+        # ------------------------
+        # cosine, euclidean
+        if self.metric == "cosine":
+            self.threshold = 0.45
+        else:
+            self.threshold = 0.95
+        # ------------------------
+
+        for subDir in os.listdir(self.employee_pictures):
+            path = self.employee_pictures + '/' + subDir + '/'
+            # path = employee_pictures + '/' + subDir
+            if not os.path.isdir(path):
+                continue
+
+            # faceImgs = self.loadFaces(path)
+            for file in os.listdir(path):
+                if not os.path.isdir(file):
+                    employee, extension = file.split(".")
+                    # print("===== search file name :: ", employee)
+                    # print("===== filePath :: {}/{}.{}".format(path,employee, extension))
+                    img = self.preprocess_image(path + '%s.%s' % (employee, extension))
+                    representation = self.model.predict(img)[0, :]
+                    employees[employee] = representation
+
+        return employees
+
+
+    def defaultSetOpenface(self):
+        """
+        openface 구동을 위한 초기 설정
+        순서 : defaultSetOpenface -> runPredictOpenface
+        :return:
+        """
+        self.employees = dict()
+        self.employees = self.representationFileSetting(self.employees)
+
+    def runPredictOpenface(self, img):
+        """
+        openface 구동
+        :param img:
+        :return: img
+        """
+        faces = self.face_cascade.detectMultiScale(img, 1.3, 5)
+
+        for (x, y, w, h) in faces:
+            if w > 60:  # discard small detected faces
+                cv2.rectangle(img, (x, y), (x + w, y + h), self.color, 1)  # draw rectangle to main image
+
+                detected_face = img[int(y):int(y + h), int(x):int(x + w)]  # crop detected face
+                detected_face = cv2.resize(detected_face, (96, 96))  # resize to 96x96
+
+                img_pixels = image.img_to_array(detected_face)
+                img_pixels = np.expand_dims(img_pixels, axis=0)
+                # employee dictionary is using preprocess_image and it normalizes in scale of [-1, +1]
+                img_pixels /= 127.5
+                img_pixels -= 1
+
+                captured_representation = self.model.predict(img_pixels)[0, :]
+
+                distances = []
+
+                for i in self.employees:
+                    employee_name = i
+                    source_representation = self.employees[i]
+
+                    if self.metric == "cosine":
+                        distance = self.findCosineDistance(captured_representation, source_representation)
+                    elif self.metric == "euclidean":
+                        distance = self.findEuclideanDistance(captured_representation, source_representation)
+
+                    if self.dump:
+                        print(employee_name, ": ", distance)
+                    distances.append(distance)
+
+                label_name = 'unknown'
+                index = 0
+                for i in self.employees:
+                    employee_name = i
+                    if index == np.argmin(distances):
+                        if distances[index] <= self.threshold:
+                            # print("detected: ",employee_name)
+
+                            if self.metric == "euclidean":
+                                similarity = 100 + (90 - 100 * distance)
+                            elif self.metric == "cosine":
+                                similarity = 100 + (40 - 100 * distance)
+
+                            # print("similarity :: ", similarity)
+                            if similarity > 99.99: similarity = 99.99
+
+                            label_name = "%s (%s%s)" % (employee_name, str(round(similarity, 2)), '%')
+
+                            break
+
+                    index = index + 1
+
+                cv2.putText(img, label_name, (int(x + w + 15), int(y - 64)), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0),
+                            2)
+
+                if self.dump:
+                    print("----------------------")
+
+                # connect face and text
+                cv2.line(img, (x + w, y - 64), (x + w - 25, y - 64), self.color, 1)
+                cv2.line(img, (int(x + w / 2), y), (x + w - 25, y - 64), self.color, 1)
+
+        return img
+
+
     def runVideo(self):
         # ------------------------
         self.model = self.builtModel()
@@ -300,7 +424,7 @@ class openfaceRealTime():
         # ------------------------
 
         # https://drive.google.com/file/d/1LSe1YCV1x-BfNnfb7DFZTNpv_Q9jITxn/view
-        self.model.load_weights('../00.Resource/weights/openface_weights.h5')
+        self.model.load_weights('./00.Resource/weights/openface_weights.h5')
         print("weights loaded")
         # ------------------------
         metric = "cosine"  # cosine, euclidean
@@ -310,43 +434,37 @@ class openfaceRealTime():
             threshold = 0.95
         # ------------------------
 
-        # put your employee pictures in this path as name_of_employee.jpg
-        employee_pictures = "/home/bit/Downloads/crop_twice"
 
         employees = dict()
 
-        for subDir in os.listdir(employee_pictures):
-            path = employee_pictures + '/' + subDir + '/'
+        for subDir in os.listdir(self.employee_pictures):
+            path = self.employee_pictures + '/' + subDir + '/'
             # path = employee_pictures + '/' + subDir
-            print("path :: ", path)
-            print("subDir :: ", subDir)
             if not os.path.isdir(path):
                 continue
 
             # faceImgs = self.loadFaces(path)
             for file in os.listdir(path):
-                print("file :: ")
-                print(file)
                 if not os.path.isdir(file):
                     employee, extension = file.split(".")
-                    print("===== search file name :: ", employee)
-                    print("===== filePath :: {}/{}.{}".format(path,employee, extension))
+                    # print("===== search file name :: ", employee)
+                    # print("===== filePath :: {}/{}.{}".format(path,employee, extension))
                     img = self.preprocess_image(path + '%s.%s' % (employee, extension))
                     representation = self.model.predict(img)[0, :]
 
-                    print("representation :: ")
-                    print(representation)
+                    # print("representation :: ")
+                    # print(representation)
 
                     employees[employee] = representation
 
-        print("employee representations retrieved successfully")
-        print("employees :: ")
-        print(employees)
+        # print("employee representations retrieved successfully")
+        # print("employees :: ")
+        # print(employees)
 
         # ------------------------
 
 
-        cap = cv2.VideoCapture("/home/bit/Downloads/test5.mp4")  # webcam
+        cap = cv2.VideoCapture(self.videoFilePath)  # webcam
 
         while (True):
             ret, img = cap.read()
@@ -422,7 +540,7 @@ class openfaceRealTime():
         cap.release()
         cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-
-    openFace = openfaceRealTime()
-    openFace.runVideo()
+# if __name__ == "__main__":
+#
+#     openFace = openfaceRealTime()
+#     openFace.runVideo()

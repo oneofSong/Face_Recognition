@@ -61,7 +61,7 @@ class Ui_MainWindow(object):
         # player 사용시 업로드할 file_path를 입력
         ########################
         # self.video_player = cv_video_player(file_path="/home/bit/Downloads/test.mp4")
-        self.video_player = cv_video_player(file_path="/home/bit/Downloads/test3.mp4")
+        self.video_player = cv_video_player(file_path="/home/bit/Downloads/test5.mp4")
 
         ## faceRecognotion class
         self.fr = faceRecognition.faceRecognition()

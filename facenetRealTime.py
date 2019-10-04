@@ -15,24 +15,22 @@ class facenetRealtime():
 
     def __init__(self):
         # self.face_cascade = cv2.CascadeClassifier('./00.Resource/dataset/haarcascade_frontalface_default.xml')
-        # self.face_cascade = cv2.CascadeClassifier('/home/bit/anaconda3/envs/faceRecognition/lib/python3.7/site-packages/cv2/data/haarcascade_frontalface_default.xml')
-        self.face_cascade = cv2.CascadeClassifier('C:/Users/JK/Anaconda3/envs/faceRecognition/Lib/site-packages/cv2/data/haarcascade_frontalface_default.xml')
+        self.face_cascade = cv2.CascadeClassifier('/home/bit/anaconda3/envs/faceRecognition/lib/python3.7/site-packages/cv2/data/haarcascade_frontalface_default.xml')
+        # self.face_cascade = cv2.CascadeClassifier('C:/Users/JK/Anaconda3/envs/faceRecognition/Lib/site-packages/cv2/data/haarcascade_frontalface_default.xml')
 
         # self.face_cascade = cv2.CascadeClassifier('/home/bit/anaconda3/envs/faceRecognition/lib/python3.7/site-packages/cv2/data/haarcascade_frontalface_extended.xml')
-        print("face_cascade built :: C:/Users/JK/Anaconda3/envs/faceRecognition/Lib/site-packages/cv2/data/haarcascade_frontalface_default.xml")
+        # print("face_cascade built :: C:/Users/JK/Anaconda3/envs/faceRecognition/Lib/site-packages/cv2/data/haarcascade_frontalface_default.xml")
         # ------------------------
         # with open("../00.Resource/model/facenet_model.json", 'r') as file_handle:
         #     self.model = model_from_json(file_handle.read())
-        self.model = InceptionResNetV1()
-        print("model built")
-
-        # https://drive.google.com/file/d/1971Xk5RwedbudGgTIrGAL4F7Aifu7id1/view?usp=sharing
-        self.model.load_weights('../00.Resource/weights/facenet_weights.h5')
-        print("weights loaded")
+        self.model = None
+        self.faces = None
         # ------------------------
-
-        self.employee_pictures = "F:/sampleData/blackpink_crop"
-        self.cap = cv2.VideoCapture("F:/sampleData/bp1.mp4")  # videoFile
+        # self.employee_pictures = "/home/bit/Downloads/blackpink_crop"
+        self.employee_pictures = "/home/bit/Downloads/crop_twice"
+        # self.employee_pictures = "F:/sampleData/blackpink_crop"
+        # self.cap = cv2.VideoCapture("F:/sampleData/bp1.mp4")  # videoFile
+        self.cap = cv2.VideoCapture("/home/bit/Downloads/bp1.mp4")  # videoFile
         # ------------------------
 
         self.threshold = 21  # tuned threshold for l2 disabled euclidean distance
@@ -71,6 +69,12 @@ class facenetRealtime():
         사진이미지를 이용하여 모델 설정
         :return: dict
         """
+        self.model = InceptionResNetV1()
+        print("model built")
+
+        self.model.load_weights('./00.Resource/weights/facenet_weights.h5')
+        print("weights loaded")
+
         for subDir in os.listdir(self.employee_pictures):
             path = self.employee_pictures + '/' + subDir + '/'
             # path = self.employee_pictures + '/' + subDir
@@ -93,9 +97,9 @@ class facenetRealtime():
         :param img:
         :return: 
         """
-        faces = self.face_cascade.detectMultiScale(img, 1.3, 5)
+        self.faces = self.face_cascade.detectMultiScale(img, 1.3, 5)
 
-        for (x, y, w, h) in faces:
+        for (x, y, w, h) in self.faces:
             if w > 80:  # discard small detected faces
                 cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)  # draw rectangle to main image
 
@@ -151,7 +155,29 @@ class facenetRealtime():
                 cv2.line(img, (int(x + w / 2), y), (x + w - 25, y - 64), (0, 255, 0), 2)
         return img
 
+    def defaultSetFacenet2(self):
+        """
+        facenet2 구동을 위한 초기 설정
+        순서 : defaultSetFacenet2 -> runPredictFacenet2
+        :return:
+        """
+        self.employees = dict()
+        self.employees = self.representationFileSetting(self.employees)
+
+    def runPredictFacenet2(self, img):
+        """
+        facenet2 run
+        :param img:
+        :return: img
+        """
+        img = self.runFacenet(img)
+        return img
+
     def runVideo(self):
+        """
+        local test run method
+        :return:
+        """
         self.employees = dict()
         self.employees = self.representationFileSetting(self.employees)
 
@@ -167,8 +193,8 @@ class facenetRealtime():
         self.cap.release()
         cv2.destroyAllWindows()
 
-if __name__ == "__main__":
-    print("========== run facenetRealTime.py")
-
-    facenet = facenetRealtime()
-    facenet.runVideo()
+# if __name__ == "__main__":
+#     print("========== run facenetRealTime.py")
+#
+#     facenet = facenetRealtime()
+#     facenet.runVideo()

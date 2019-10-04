@@ -22,7 +22,7 @@ class facenetInKeras():
 
     """
     def __init__(self):
-        self.faceModel = ""
+        self.faceModel = None
         self.faceEmdDataSet = np.load('./00.Resource/embedding/twice-faces-embeddings.npz')
         self.trainX, self.trainY = self.faceEmdDataSet['arr_0'], self.faceEmdDataSet['arr_1']
         self.inEncoder = Normalizer(norm='l2')
@@ -36,17 +36,6 @@ class facenetInKeras():
         # self.svcModel = SVC(kernel='sigmoid', probability=True)
         self.svcModel.fit(self.trainX, self.trainY)
 
-        # self.newNetworkSession()
-
-        # print(self.faceModel.inputs)
-        # print("==========================================================")
-        # print(self.faceModel.outputs)
-        # print("==========================================================")
-
-    def newNetworkSession(self):
-        with keras.backend.get_session().graph.as_default():
-            self.model = load_model("./00.Resource/model/facenet_keras.h5")
-            # label = model.predict(images, batch_size=128, verbose=1)
 
     def detectFace(self, url):
         """
@@ -242,11 +231,11 @@ class facenetInKeras():
         detector = MTCNN()
 
         results = detector.detect_faces(image)
+        face_array = list()
 
         if results == []:
-            return None, None
+            return results, face_array
 
-        face_array = list()
         for idx in results:
             x1, y1, width, height = idx['box']
 
